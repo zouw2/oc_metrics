@@ -1,0 +1,85 @@
+---
+title: "summarize across scenarios"
+author: "wei zou"
+date: "`r Sys.time()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+
+spec <- list( home = '~/aPDL1/oak', pd.var='dynamics')
+
+jobs=c('Ks1'      = 'change_all3_2_ks_kg0.01',
+       'ks1-low'  = 'change_all3_2c_ks_kg0.01',
+       'ks1-high' = 'change_all3_2d_ks_kg0.01',
+       'ks2'      = 'change_all3_ks_kg0.03',
+       'kg1'      = 'change_all3_kg_ks0.02',
+       'kg2'      = 'change_all3_kg_ks0.05')
+           
+
+jobs2 <- names(jobs)
+names(jobs2) <- jobs
+
+library(knitr)
+library(plyr)
+library(grid)
+library(ggplot2)
+library(reshape2)
+source('~/R/lib_2020/data_functions.r')
+source('~/R/lib_2020/output_functions.r')
+source('~/R/lib_2020/yyboxplot.r')
+source('~/R/lib_2020/violin.r')
+source('~/aPDL1/oak/simsurv_functions.r')
+
+col1 <- gplots::colorpanel(n=5, low='green', mid='black', high='red')
+
+names(col1) <- c('0','0.5','2','4','6')
+ 
+
+sum2 <- function(x, digits=2, applyUniqueBeforeConcatenate=F){
+  stopifnot(is.matrix(x))
+  apply(x, 2, function(x){
+    if(length(unique(x)) == 1){
+      round(x[1], digits)
+    }else {
+       if( applyUniqueBeforeConcatenate){
+         paste(' ',paste(unique(round(x, digits)), collapse = ' / ', sep=''))
+       }else{
+         paste(' ',paste(round(x, digits), collapse = ' / ', sep=''))
+         } 
+    }
+      })
+}
+
+```
+
+```{r load, echo=F}
+
+r2 <- do.call(rbind, lapply(names(jobs), function(j)  {
+  print(j)
+  r1 <- readFolder.rdata( path= paste(spec$home,'results', jobs[[j]], sep='/'), pattern = paste( '\\.Rdata', sep=''), extractPos =c(alpha=6, dynamics = 7,beta1 = 8), objName ='s1') 
+  
+  r1$sim <- j
+  r1
+  }))
+
+
+r2$sim <- factor(as.character(r2$sim), levels =  names(jobs))
+r2$beta1 <- factor(as.numeric(r2$beta1))
+```
+
+# summary of early events
+
+```{r , echo=F}
+
+sapply( split(r2, r2$sim), function(r1){
+    
+  len <- with(r1, as.vector(tapply(n_early_event.0, list(alpha, dynamics, beta1), length)))
+  if(!all(len== 300)) print(paste(unique(r1$sim),'has', sum(len != 300),'parameter combos do not have exactly 300 replicates'))
+  early <- with(r1, as.vector(tapply(n_early_event.0, list(alpha, dynamics, beta1), mean)/200 ))
+  
+  summary(early)
+  
+  })
+``` 

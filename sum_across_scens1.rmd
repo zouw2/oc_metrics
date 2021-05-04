@@ -1,0 +1,375 @@
+---
+title: "summarize across scenarios"
+author: "wei zou"
+date: "`r Sys.time()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+
+spec <- list( home = '~/aPDL1/oak', pd.var='dynamics')
+
+jobs=c('Ks1'      = 'change_all3_2_ks_kg0.01',
+       'ks1-low'  = 'change_all3_2c_ks_kg0.01',
+       'ks1-high' = 'change_all3_2d_ks_kg0.01',
+       'ks2'      = 'change_all3_ks_kg0.03',
+       'kg1'      = 'change_all3_kg_ks0.02',
+       'kg2'      = 'change_all3_kg_ks0.05')
+           
+
+jobs2 <- names(jobs)
+names(jobs2) <- jobs
+
+library(knitr)
+library(plyr)
+library(grid)
+library(ggplot2)
+library(reshape2)
+source('~/R/lib_2020/data_functions.r')
+source('~/R/lib_2020/output_functions.r')
+source('~/R/lib_2020/yyboxplot.r')
+source('~/R/lib_2020/violin.r')
+source('~/aPDL1/oak/simsurv_functions.r')
+
+col1 <- gplots::colorpanel(n=5, low='green', mid='black', high='red')
+
+names(col1) <- c('0','0.5','2','4','6')
+ 
+
+sum2 <- function(x, digits=2, applyUniqueBeforeConcatenate=F){
+  stopifnot(is.matrix(x))
+  apply(x, 2, function(x){
+    if(length(unique(x)) == 1){
+      round(x[1], digits)
+    }else {
+       if( applyUniqueBeforeConcatenate){
+         paste(' ',paste(unique(round(x, digits)), collapse = ' / ', sep=''))
+       }else{
+         paste(' ',paste(round(x, digits), collapse = ' / ', sep=''))
+         } 
+    }
+      })
+}
+
+```
+
+```{r load, echo=F, include=F}
+
+r2 <- do.call(rbind, lapply(names(jobs), function(j)  {
+  print(j)
+  r1 <- readFolder.rdata( path= paste(spec$home,'results', jobs[[j]], sep='/'), pattern = paste( '\\.Rdata', sep=''), extractPos =c(alpha=6, dynamics = 7,beta1 = 8), objName ='s1') 
+  
+  r1$sim <- j
+  r1
+  }))
+
+
+r2$sim <- factor(as.character(r2$sim), levels =  names(jobs))
+r2$beta1 <- factor(as.numeric(r2$beta1))
+```
+
+# Patient level association metrics are correlated
+
+```{r summarize patient level metric association, echo=F}
+ tab1 <-  ddply(r2, .(sim, alpha, beta1, dynamics), function(x) {
+  
+    with(x, data.frame(beta1=unique(as.numeric(as.character(beta1))), 
+              alpha=unique(as.numeric(as.character(alpha))),
+              pd.var= as.numeric(unique(x[, spec$pd.var])), 
+              ibs=cor(ibs.original, c_rfs, method = 'spearman'), 
+              ibs.scaled=cor(ibs.scaled, c_rfs, method = 'spearman'), 
+              beta = cor(bmHR_stratifi_by_trt.bm,c_rfs, method = 'spearman'), n=nrow(x), sim=unique(sim), stringsAsFactors = F ))
+    }    )
+
+kable( subset(tab1, n < 300), row.names=F, caption  = 'simulations without full expected results')
+
+tab1b <- melt(subset(tab1, n==300), id.vars=c('dynamics','beta1','alpha','pd.var', 'sim'), measure.vars=c('ibs','ibs.scaled','beta'))
+
+
+tab1b$variable <- factor(gsub('^ibs$', 'IBS',
+                       gsub('ibs.scaled','Scaled IBS',
+                            gsub('beta', 'log(HR) of SE', as.character(tab1b$variable)))), levels=c('IBS','Scaled IBS','log(HR) of SE'))
+
+
+tab1b$value <- abs(tab1b$value)
+
+y1 <- yyboxplot(tab1b, x = 'alpha', y='value', h.facets='sim', v.facets = 'variable', useCol = T,  add.n = F, pch=NA, col = col1, main = 'Between C index and other patient level metrics, under unique parameter settings', ylab = 'Absolute value of spearman correlation') + scale_y_continuous(minor_breaks = seq(0,1, length.out = 5)) 
+
+```
+
+
+We first estimated spearman correlations between C index and other patient level association metrics (indicated in the column head) from 300 trials simulated from the same parameters. Each box summarizes 15 correlation estimates (from 3 values of beta_1 and 5 values of Ks/Kg parameter in the active arm) 
+
+```{r}
+
+
+  tab3 <- ddply(r2, .(beta1, dynamics, sim), function(x) {
+ 
+    with(x, c(ibs=cor(ibs.original, c_rfs, method = 'spearman'), 
+              ibs.scaled=cor(ibs.scaled, c_rfs, method = 'spearman'), 
+              beta = cor(bmHR_stratifi_by_trt.bm,c_rfs, method = 'spearman'), n=nrow(x) ))
+    }    )
+
+tab3$ibs <- abs(tab3$ibs)
+
+tab3b <- melt(tab3, id.vars=c('beta1','dynamics','sim'), measure.vars = c('ibs','ibs.scaled','beta'))
+
+tab3b$variable <- factor(gsub('^ibs$', 'IBS',
+                       gsub('ibs.scaled','Scaled IBS',
+                            gsub('beta', 'log(HR) of SE', as.character(tab3b$variable)))), levels=c('IBS','Scaled IBS','log(HR) of SE'))
+
+gg_color_hue <- function(n) {
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100)[1:n]
+}
+
+col2 <- gg_color_hue(6)
+ yyboxplot(tab3b, x = 'sim', v.facets ='variable', y='value', col=col2, useCol = T,  add.n = F, pch=NA, main = 'Between C index and other patient level metrics when alpha varies ', ylab = 'Absolute value of spearman correlation', x.anns.angle = 45)  
+
+
+```
+
+We first estimated spearman correlations between C index and other patient level association metrics (indicated in the column head) from 1500 studies simulated from the same parameters except that alpha make take 1 of the 5 values in every 300 studies. Each box summarizes 15 correlation estimates (from 3 values of beta_1 and 5 values of Ks/Kg parameter in the active arm) 
+
+# patient level association increases with alpha
+
+```{r c and alpha, echo=F,include=F}
+
+y1 <-  yyboxplot(r2, x='alpha', y='c_rfs', x.sub='beta1', ylab='C index',  main= paste('C index distribution by alpha and beta_1' ), add.n=F, pch=NA, useCol = T) + facet_wrap(~ sim, ncol=2)
+
+```
+
+```{r, fig.height=7}
+
+y1 
+```
+
+Each box summarizes the 1st quartile, median and 3rd quartile of the C index values from 1500 studies: there are 300 trials simulated with one of 5 different values of Ks/Kg parameter for the active arm and one value of alpha (indicated on the x axis) and one value of beta_1 (indicated by color).
+
+\newpage
+
+```{r , echo=F, include=F}
+
+y1 <- yyboxplot(r2, x='alpha', y='ibs.original', x.sub='beta1', ylab='IBS',  main= paste('IBS distribution by alpha and beta_1'), add.n=F, pch=NA, useCol = T) + facet_wrap(~ sim, ncol=2) 
+
+```
+
+
+```{r, fig.height=7}
+
+y1 
+```
+
+```{r , echo=F, include=F}
+ y1 <- yyboxplot(r2, x='alpha', y='ibs.scaled', x.sub='beta1', ylab='Scaled IBS',  main= paste('Scaled IBS distribution by alpha and beta_1'), add.n=F, pch=NA, useCol = T)  + facet_wrap(~ sim, ncol=2)   
+
+```
+
+
+```{r, fig.height=7}
+
+y1 
+```
+
+```{r , echo=F, include=F}
+y1 <- yyboxplot(r2, x='alpha', y='bmHR_stratifi_by_trt.bm', x.sub='beta1', ylab='log(HR) of SE',  main= paste('lgo(HR) distribution by alpha and beta_1'), add.n=F, pch=NA, useCol = T) + facet_wrap(~ sim, ncol=2)   
+ 
+```
+
+
+```{r, fig.height=7}
+
+y1 
+```
+
+
+
+# trial level association 
+
+```{r load trial level}
+
+s7  <- readFolder.rdata( path= paste(spec$home,'results', sep='/'), pattern = paste( '\\.Rdata', sep=''),  objName ='s_3') 
+
+s7$sim <- factor( jobs2[ gsub('_simu_result.Rdata','',s7$fileName, fixed=T) ], levels=names(jobs))
+s7$alpha <- as.numeric(as.character(s7$alpha))
+
+
+s5  <- readFolder.rdata( path= paste(spec$home,'results', sep='/'), pattern = paste( '\\.Rdata', sep=''),  objName ='s_1') 
+
+s5$sim <- factor( jobs2[ gsub('_simu_result.Rdata','',s5$fileName, fixed=T) ], levels=names(jobs))
+s5$alpha <- as.numeric(as.character(s5$alpha))
+s5$beta1 <-   as.factor(as.numeric(as.character(s5$beta1)))
+
+s3 <- readFolder.rdata( path= paste(spec$home,'results', sep='/'), pattern = paste( '\\.Rdata', sep=''),  objName ='s_b') 
+
+s3$sim <- factor( jobs2[ gsub('_simu_result.Rdata','',s3$fileName, fixed=T) ], levels=names(jobs))
+s3$alpha <- as.numeric(as.character(s3$alpha))
+
+```
+
+## Grouped by unique values of alpha and beta1
+
+### sampling 3 replicates per Ks/Kg parameter
+
+```{r, include=F}
+
+y1 <- yyboxplot(s7, x='alpha', y='R2', x.sub='beta1', ylab='R2 (trial level association)', add.n=F, pch=NA, useCol = T, main = paste('R2 by alpha and beta_1 from 15 studies')) + facet_wrap(~ sim, ncol=2) 
+
+```
+
+```{r, fig.height=7}
+
+y1 
+```
+
+
+Each box summarizes R2 from 100 simulated set. Each set includes 15 studies. There are 3 duplicates for each of the 5 values of Ks/Kg parameter in the active arm.
+
+
+```{r  dup3, echo=F }
+
+
+tab4 <- ddply(s7, .( beta1, sim), function(x) {
+    c1 <- with(x, data.frame( cindex=cor(R2, c_rfs, method = 'spearman'), ibs=cor(R2, ibs, method = 'spearman'), ibs.scaled=cor(R2, ibs.scaled, method = 'spearman'), beta = cor(R2, beta, method = 'spearman'), n=nrow(x) , alphaRange = '0-6', stringsAsFactors=F) )
+    
+    c2 <- with(subset(x, alpha > 0), data.frame( cindex=cor(R2, c_rfs, method = 'spearman'), ibs=cor(R2, ibs, method = 'spearman'), ibs.scaled=cor(R2, ibs.scaled, method = 'spearman'), beta = cor(R2, beta, method = 'spearman'), n=sum(alpha > 0), alphaRange = '0.5-6', stringsAsFactors=F) )
+    
+    c3 <- with(subset(x, alpha > 0.5), data.frame( cindex=cor(R2, c_rfs, method = 'spearman'), ibs=cor(R2, ibs, method = 'spearman'), ibs.scaled=cor(R2, ibs.scaled, method = 'spearman'), beta = cor(R2, beta, method = 'spearman'), n=sum(alpha > 0.5), alphaRange = '2-6', stringsAsFactors=F) )
+    
+    rbind(c1,c2, c3)
+    
+    
+    })
+
+tab4$alphaRange <- factor(as.character(tab4$alphaRange), levels=c("0-6",  "0.5-6",  "2-6"))
+
+tab4b <- melt(tab4, id.vars = c('beta1','sim','alphaRange'), measure.vars = c('cindex','ibs', 'ibs.scaled','beta' ))
+
+tab4b$variable <- factor(gsub('cindex','C index', gsub('^ibs$', 'IBS',
+                       gsub('ibs.scaled','Scaled IBS',
+                            gsub('beta', 'log(HR) of SE', as.character(tab4b$variable))))), levels=c('C index', 'IBS','Scaled IBS','log(HR) of SE'))
+
+tab4b$value <- abs(tab4b$value )
+
+ggplot(tab4b, aes(x=alphaRange, y=value)) + geom_line(aes(col = beta1, group=beta1)) + facet_grid(sim~variable, scales='free_y') + theme_bw() + ylab('Absolue value of spearman correlation') + ggtitle('Between patient level and trial level association (dup 3)')  + theme(axis.text.x = element_text(angle = 45,hjust = 1)) + scale_color_manual(values=rainbow(3))
+
+if(F){
+print( ggplot(tab4, aes(x=alphaRange, y=ibs)) + geom_line(aes(col = beta1, group=beta1)) + facet_grid(~sim) + theme_bw() + ylab('Spearman correlation') + ggtitle('Between IBS and R2') + theme(axis.text.x = element_text(angle = 45,hjust = 1))  + scale_color_manual(values=rainbow(3)) )
+
+print( ggplot(tab4, aes(x=alphaRange, y=ibs.scaled)) + geom_line(aes(col = beta1, group=beta1)) + facet_grid(~sim) + theme_bw() + ylab('Spearman correlation') + ggtitle('Between Scaled IBS and R2')+ theme(axis.text.x = element_text(angle = 45,hjust = 1)) + scale_color_manual(values=rainbow(3)))
+       
+ggplot(tab4, aes(x=alphaRange, y=beta)) + geom_line(aes(col = beta1, group=beta1)) + facet_grid(~sim) + theme_bw() + ylab('Spearman correlation') + ggtitle('Between log(HR) of SE and R2')+ theme(axis.text.x = element_text(angle = 45,hjust = 1))  + scale_color_manual(values=rainbow(3)) 
+
+}
+```
+
+### sampling 1 study per Ks/Kg parameter
+
+
+```{r, include=F}
+
+y1 <- yyboxplot(s5, x='alpha', y='R2', x.sub='beta1', ylab='R2 (trial level association)', add.n=F, pch=NA, useCol = T, main = paste('R2 by alpha and beta_1 from 5 studies')) + facet_wrap(~ sim, ncol=2) 
+
+```
+
+```{r, fig.height=7}
+
+y1 
+```
+ 
+Each box summarizes R2 from 100 simulated set. Each set includes 5 studies.There are 1 duplicates for each of the 5 values of Ks/Kg parameter in the active arm.
+
+
+```{r dup1, echo=F }
+
+
+tab5 <- ddply(s5, .( beta1, sim), function(x) {
+    c1 <- with(x, data.frame( cindex=cor(R2, c_rfs, method = 'spearman'), ibs=cor(R2, ibs, method = 'spearman'), ibs.scaled=cor(R2, ibs.scaled, method = 'spearman'), beta = cor(R2, beta, method = 'spearman'), n=nrow(x) , alphaRange = '0-6', stringsAsFactors=F) )
+    
+    c2 <- with(subset(x, alpha > 0), data.frame( cindex=cor(R2, c_rfs, method = 'spearman'), ibs=cor(R2, ibs, method = 'spearman'), ibs.scaled=cor(R2, ibs.scaled, method = 'spearman'), beta = cor(R2, beta, method = 'spearman'), n=sum(alpha > 0), alphaRange = '0.5-6', stringsAsFactors=F) )
+    
+    c3 <- with(subset(x, alpha > 0.5), data.frame( cindex=cor(R2, c_rfs, method = 'spearman'), ibs=cor(R2, ibs, method = 'spearman'), ibs.scaled=cor(R2, ibs.scaled, method = 'spearman'), beta = cor(R2, beta, method = 'spearman'), n=sum(alpha > 0.5), alphaRange = '2-6', stringsAsFactors=F) )
+    
+    rbind(c1,c2, c3)
+    
+    
+    })
+
+tab5$alphaRange <- factor(as.character(tab5$alphaRange), levels=c("0-6",  "0.5-6",  "2-6"))
+
+tab5$beta1 <-   as.factor(as.numeric(as.character(tab5$beta1)))
+
+
+tab5b <- melt(tab5, id.vars = c('beta1','sim','alphaRange'), measure.vars = c('cindex','ibs', 'ibs.scaled','beta' ))
+
+tab5b$variable <- factor(gsub('cindex','C index', gsub('^ibs$', 'IBS',
+                       gsub('ibs.scaled','Scaled IBS',
+                            gsub('beta', 'log(HR) of SE', as.character(tab5b$variable))))), levels=c('C index', 'IBS','Scaled IBS','log(HR) of SE'))
+
+tab5b$value <- abs(tab5b$value )
+
+ggplot(tab5b, aes(x=alphaRange, y=value)) + geom_line(aes(col = beta1, group=beta1)) + facet_grid(sim~variable, scales='free_y') + theme_bw() +ylab('Absolue value of spearman correlation') + ggtitle('Between patient level and trial level association (dup 1)')  + theme(axis.text.x = element_text(angle = 45,hjust = 1)) + scale_color_manual(values=rainbow(3))
+
+
+if(F){
+print( ggplot(tab5, aes(x=alphaRange, y=cindex)) + geom_line(aes(col = beta1, group=beta1)) + facet_grid(~sim) + theme_bw() + ylab('Spearman correlation') + ggtitle('Between C index and R2') + theme(axis.text.x = element_text(angle = 45,hjust = 1)) + scale_color_manual(values=rainbow(3)))
+
+print( ggplot(tab5, aes(x=alphaRange, y=ibs)) + geom_line(aes(col = beta1, group=beta1)) + facet_grid(~sim) + theme_bw() + ylab('Spearman correlation') + ggtitle('Between IBS and R2')+ theme(axis.text.x = element_text(angle = 45,hjust = 1) ) + scale_color_manual(values=rainbow(3)))
+
+print( ggplot(tab5, aes(x=alphaRange, y=ibs.scaled)) + geom_line(aes(col = beta1, group=beta1)) + facet_grid(~sim) + theme_bw() + ylab('Spearman correlation') + ggtitle('Between Scaled IBS and R2')+ theme(axis.text.x = element_text(angle = 45,hjust = 1)) + scale_color_manual(values=rainbow(3)))
+       
+ggplot(tab5, aes(x=alphaRange, y=beta)) + geom_line(aes(col = beta1, group=beta1)) + facet_grid(~sim) + theme_bw() + ylab('Spearman correlation') + ggtitle('Between log(HR) of SE and R2')+ theme(axis.text.x = element_text(angle = 45,hjust = 1)) + scale_color_manual(values=rainbow(3))       
+
+}
+```
+
+
+
+## Grouped by alpha
+
+
+```{r, include=F}
+
+y1 <- yyboxplot(s3, x='alpha', y='R2', ylab='R2 (trial level association)', add.n=F, pch=NA, useCol = T, main = paste('R2 by alpha from 15 studies'), col=col1) + facet_wrap(~ sim, ncol=2) 
+
+```
+
+
+```{r, fig.height=7, fig.width=5}
+
+y1
+```
+
+Each box summarizes R2 from 100 simulated set. Each set includes 15 studies. There are 1 duplicates for each of 3 beta_1 values and the each of 5 values of Ks/Kg parameter in the active arm.
+
+
+```{r, fig.height=3}
+
+
+tab6 <- ddply(s3, .(sim), function(x){
+  rbind(
+     with(x, data.frame(cindex=cor(R2, c_rfs, method = 'spearman'), ibs=cor(R2, ibs, method = 'spearman'), ibs.scaled=cor(R2, ibs.scaled, method = 'spearman'), beta = cor(R2, beta, method = 'spearman'), n=nrow(x) , alphaRange = '0-6', stringsAsFactors=F)),
+    
+    with(subset(x, alpha > 0), data.frame( cindex=cor(R2, c_rfs, method = 'spearman'), ibs=cor(R2, ibs, method = 'spearman'), ibs.scaled=cor(R2, ibs.scaled, method = 'spearman'), beta = cor(R2, beta, method = 'spearman'), n= sum(alpha > 0), alphaRange = '0.5-6', stringsAsFactors=F )),
+    
+    with(subset(x, alpha > 0.5), data.frame( cindex=cor(R2, c_rfs, method = 'spearman'), ibs=cor(R2, ibs, method = 'spearman'), ibs.scaled=cor(R2, ibs.scaled, method = 'spearman'), beta = cor(R2, beta, method = 'spearman'), n= sum(alpha > 0.5), alphaRange = '2-6', stringsAsFactors=F )))}
+  
+)
+
+
+tab6$alphaRange <- factor(as.character(tab6$alphaRange), levels=c("0-6",  "0.5-6",  "2-6"))
+
+tab6b <- melt(tab6, id.vars=c('sim', 'alphaRange'), measure.vars=c('cindex','ibs','ibs.scaled','beta'))
+
+tab6b$value <- abs(tab6b$value)
+
+tab6b$variable <- factor(gsub('^ibs$', 'IBS',
+                       gsub('ibs.scaled','Scaled IBS',
+                            gsub('beta', 'log(HR) of SE',
+                                 gsub('cindex','C index', as.character(tab6b$variable))))), levels=c('C index','IBS','Scaled IBS','log(HR) of SE'))
+
+  ggplot(tab6b, aes(x=alphaRange, y=value)) + geom_line(aes(group=sim, col=sim)) + facet_grid(~variable)  + theme_bw() + ylab('Assolute spearman correlation') + ggtitle('Between patient level and trial level association') + guides(color=guide_legend(title="Simulation"))
+
+```
+
