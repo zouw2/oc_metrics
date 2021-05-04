@@ -290,9 +290,9 @@ kable( dcast(ddply(s7, .(alpha, beta1) ,function(x) median(x$'R2')), alpha~ beta
 # show association
 #   print( violinPlot(s7, x = 'alpha',y='R2', h.facets = 'beta1', add.n='', ylab='R2 for trial level association', col=col1) )
    
-   print( myScatter(s7, x= 'R2', y ='c_rfs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates')) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='c_rfs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
    
-   print( myScatter(s7, x= 'R2', y ='c_rfs', col.var = 'alpha', corMethod='', showContour = T, main = paste(spec$jobName, '3 replicates')) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='c_rfs', col.var = 'alpha', corMethod='', showContour = T, main = paste(spec$jobName, '3 replicates', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
 
 ```   
 
@@ -302,19 +302,19 @@ n: the total number of simulated pairs across all alpha and beta_1 values. Each 
   
 ```{r}
 # IBS   
-   print( myScatter(s7, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates')) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1') )
    
-   print( myScatter(s7, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates'), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates', sep=','), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1') )
 
-   print( myScatter(s7, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates'))  + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates', sep=','))  + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1') )
    
-   print( myScatter(s7, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates'), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates', sep=','), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1') )
 
   #log(HR) of Se
       
-   print( myScatter(s7, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates')) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE') + facet_wrap('beta1') )
    
-   print( myScatter(s7, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates'), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates', sep=','), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE') + facet_wrap('beta1') )
     
 ```
  
@@ -356,18 +356,18 @@ kable( tab5 , caption=paste( 'Spearman correlation between patient level associa
    
    s5b$alpha <- factor(s5b$alpha)
    
-   print( myScatter(s5b, x= 'R2', y ='c_rfs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate')) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
-   print( myScatter(s5b, x= 'R2', y ='c_rfs', col.var = 'alpha',corMethod='',  main = paste(spec$jobName, '1 replicate'), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
+   print( myScatter(s5b, x= 'R2', y ='c_rfs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
+   print( myScatter(s5b, x= 'R2', y ='c_rfs', col.var = 'alpha',corMethod='',  main = paste(spec$jobName, '1 replicate', sep=','), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
    
-   print( myScatter(s5b, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate')) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1'))
-  print( myScatter(s5b, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate'), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1'))
+   print( myScatter(s5b, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1'))
+  print( myScatter(s5b, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate', sep=','), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1'))
 
-     print( myScatter(s5b, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate')) + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1'))
-  print( myScatter(s5b, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate'), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1'))
+     print( myScatter(s5b, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1'))
+  print( myScatter(s5b, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate', sep=','), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1'))
 
     
-   print( myScatter(s5b, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate')) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE')+ facet_wrap('beta1') )
-print( myScatter(s5b, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate'), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE')+ facet_wrap('beta1') )
+   print( myScatter(s5b, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE')+ facet_wrap('beta1') )
+print( myScatter(s5b, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate', sep=','), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE')+ facet_wrap('beta1') )
    
 
 ```
