@@ -46,7 +46,7 @@ sum2 <- function(x, digits=2, applyUniqueBeforeConcatenate=F){
 
  
 
-```{r load sim results, echo=F}
+```{r load sim results, echo=F, include=F}
 
 
 
@@ -66,6 +66,9 @@ row.names(p2) <- gsub('betaEvent_intercept' ,'beta_0',
                            gsub('ks_omega','SD of random effect on ks',
                                 gsub('kg_omega','SD of random effect on kg',
                                      gsub('measure_sd','SD for error', row.names(p2))))))
+```
+
+```{r, echo=F}
 kable(p2 , col.names = 'Values', caption = paste('Parameter values in simulation', spec$jobName))
 
 r1$beta1 <- factor(as.numeric(r1$beta1))
@@ -136,7 +139,7 @@ x axis extends to the mean follow up time when both alpha =0 and beta_1= 0. A sm
    
    }))
  
- kable(tab1b, caption = paste('Spearman correlation between C index and other patient level association metrics, grouped by alpha, from Simulation', spec$jobName ))
+ kable(tab1b, caption = paste('Median (1st quartile, 3rd quartile) of spearman correlation between C index and other patient level association metrics, grouped by alpha, from Simulation', spec$jobName ))
 
  write.csv(tab1b, file = paste(spec$home, '/results/', spec$job,'_median_correlation_patient_level_stats.csv', sep=''), row.names=T)
 
@@ -207,10 +210,10 @@ kable( dcast(ddply(r1, .(alpha, beta1) ,function(x) median(x$'bmHR_stratifi_by_t
 
 # trial level association  
 
-## Grouped by unique values of alpha and beta1
+## Fixed beta_1
 
 
-```{r,echo=F}
+```{r,echo=F, include=F}
 
 
 r1$beta1 <- as.character(r1$beta1)
@@ -273,9 +276,9 @@ kable( dcast(ddply(s7, .(alpha, beta1) ,function(x) median(x$'R2')), alpha~ beta
 # show association
 #   print( violinPlot(s7, x = 'alpha',y='R2', h.facets = 'beta1', add.n='', ylab='R2 for trial level association', col=col1) )
    
-   print( myScatter(s7, x= 'R2', y ='c_rfs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName)) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='c_rfs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
    
-   print( myScatter(s7, x= 'R2', y ='c_rfs', col.var = 'alpha', corMethod='', showContour = T, main = paste(spec$jobName)) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='c_rfs', col.var = 'alpha', corMethod='', showContour = T, main = paste(spec$jobName, '3 replicates', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
 
 ```   
 
@@ -285,19 +288,19 @@ n: the total number of simulated pairs across all alpha and beta_1 values. Each 
   
 ```{r}
 # IBS   
-   print( myScatter(s7, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = spec$jobName) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1') )
    
-   print( myScatter(s7, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = spec$jobName, showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates', sep=','), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1') )
 
-   print( myScatter(s7, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = spec$jobName) + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates', sep=','))  + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1') )
    
-   print( myScatter(s7, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = spec$jobName, showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates', sep=','), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1') )
 
   #log(HR) of Se
       
-   print( myScatter(s7, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = spec$jobName) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE') + facet_wrap('beta1') )
    
-   print( myScatter(s7, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = spec$jobName, showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE') + facet_wrap('beta1') )
+   print( myScatter(s7, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '3 replicates', sep=','), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE') + facet_wrap('beta1') )
     
 ```
  
@@ -327,7 +330,7 @@ s5$R2 <- s5$cor1^2
     }
     ))
   
-kable( tab5 , caption=paste( 'Spearman correlation between patient level association metric and trial level association metric in Simulation', spec$jobName, '1 replicate'), digits = 2, row.names=F)
+kable( tab5 , caption=paste( 'Spearman correlation between patient level association metric and trial level association metric in Simulation', spec$jobName, ', with 1 replicate'), digits = 2, row.names=F)
    
 ```
 
@@ -339,30 +342,32 @@ kable( tab5 , caption=paste( 'Spearman correlation between patient level associa
    
    s5b$alpha <- factor(s5b$alpha)
    
-   print( myScatter(s5b, x= 'R2', y ='c_rfs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate')) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
-   print( myScatter(s5b, x= 'R2', y ='c_rfs', col.var = 'alpha',corMethod='',  main = paste(spec$jobName, '1 replicate'), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
+   print( myScatter(s5b, x= 'R2', y ='c_rfs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
+   print( myScatter(s5b, x= 'R2', y ='c_rfs', col.var = 'alpha',corMethod='',  main = paste(spec$jobName, '1 replicate', sep=','), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('C index') + facet_wrap('beta1') )
    
-   print( myScatter(s5b, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate')) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1'))
-  print( myScatter(s5b, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate'), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1'))
+   print( myScatter(s5b, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1'))
+  print( myScatter(s5b, x= 'R2', y ='ibs', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate', sep=','), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('IBS') + facet_wrap('beta1'))
 
-     print( myScatter(s5b, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate')) + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1'))
-  print( myScatter(s5b, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate'), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1'))
+     print( myScatter(s5b, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1'))
+  print( myScatter(s5b, x= 'R2', y ='ibs.scaled', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate', sep=','), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('Scaled IBS') + facet_wrap('beta1'))
 
     
-   print( myScatter(s5b, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate')) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE')+ facet_wrap('beta1') )
-print( myScatter(s5b, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate'), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE')+ facet_wrap('beta1') )
+   print( myScatter(s5b, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate', sep=',')) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE')+ facet_wrap('beta1') )
+print( myScatter(s5b, x= 'R2', y ='beta', col.var = 'alpha', corMethod='',  main = paste(spec$jobName, '1 replicate', sep=','), showContour = T) + theme_bw() + xlab('SE Utility (R2)') + ylab('log(HR) of SE')+ facet_wrap('beta1') )
    
 
 ```
 
 
-## Grouped by alpha
+## Varying beta_1
 
 
-```{r example 2, echo=F}
+```{r example 2, echo=F, include=F}
 set.seed(27519)
 s4  <- pair_simulation2(ds =r1,  pd_mod.var  =c(spec$pd.var, 'beta1'), dup = 1, strata.var=c('alpha'), returnSimData=T, verbose = 1 )
+```
 
+```{r, echo=F}
 s4$beta1 <- factor(as.numeric(s4$beta1))
 
 ggplot(s4, aes(bm_diff.1, trt_itt.trt)) + geom_point(aes(col=beta1)) + facet_wrap(~alpha)+ theme_bw() + ggtitle('example sets of studies to estimated R2, stratified by alpha') + xlab('marginal SE difference across treatment') + ylab('marginal treatment effect') + scale_color_manual(values=rainbow(3))
@@ -399,6 +404,12 @@ kable( ddply(s3, .(alpha) ,function(x) median(x$'R2')), col.names = c('alpha','S
   s3$alpha <- as.character(s3$alpha)
 
     print( myScatter(s3,  x = 'R2' ,  y='c_rfs', col.var = 'alpha', corMethod='spearman') + xlab('R2') + ylab('C index') + theme_bw() )
+```
+
+n: the total number of simulated pairs across all alpha values. Each pair includes an initial
+discovery cohort to estimate patient level association and a set of studies to estimate trial level association
+
+```{r, echo=F}
   print( myScatter(s3,  x = 'R2' ,  y='c_rfs', col.var = 'alpha', corMethod='spearman', showContour = T) + xlab('SE Utility (R2)') + ylab('C index') + theme_bw() )
   
   print( myScatter(s3,  x = 'R2' ,  y='ibs', col.var = 'alpha', corMethod='spearman') + xlab('SE Utility (R2)') + ylab('IBS') + theme_bw() )
